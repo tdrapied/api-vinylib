@@ -1,7 +1,7 @@
-import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { NestFactory, Reflector } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { ValidationPipe } from "@nestjs/common";
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,11 +19,14 @@ async function bootstrap() {
     }),
   );
 
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
   if (process.env.APP_ENV !== 'production') {
     const config = new DocumentBuilder()
       .setTitle(process.env.npm_package_name)
       .setVersion(process.env.npm_package_version)
       .addBearerAuth()
+      .addTag('users')
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('/', app, document);
