@@ -26,7 +26,7 @@ async function bootstrap() {
       .setTitle(process.env.npm_package_name)
       .setVersion(process.env.npm_package_version)
       .addBearerAuth()
-      .addTag('users')
+      .addTag('auth')
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('/', app, document);
