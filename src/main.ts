@@ -27,6 +27,7 @@ async function bootstrap() {
       .setVersion(process.env.npm_package_version)
       .addBearerAuth()
       .addTag('auth')
+      .addTag('vinyls')
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('/', app, document);

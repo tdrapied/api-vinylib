@@ -16,20 +16,20 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @UseGuards(LocalAuthGuard)
   @ApiBody({
     schema: { example: { email: 'string', password: 'string' } },
   })
   @ApiResponse({ status: 201, schema: { example: { token: 'string' } } })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Request() req): Promise<{ token: string }> {
     return this.authService.login(req.user);
   }
 
   @ApiBearerAuth()
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @UseGuards(JwtAuthGuard)
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Get('me')
   me(@Request() req): User {
     return req.user;
