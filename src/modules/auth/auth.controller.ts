@@ -1,8 +1,15 @@
-import { Controller, Post, UseGuards, Request, Get } from '@nestjs/common';
 import {
-  ApiBearerAuth,
+  Controller,
+  Post,
+  UseGuards,
+  Request,
+  Response,
+  Get,
+  HttpCode,
+} from '@nestjs/common';
+import {
   ApiBody,
-  ApiResponse,
+  ApiCookieAuth,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -20,18 +27,29 @@ export class AuthController {
   @ApiBody({
     schema: { example: { email: 'string', password: 'string' } },
   })
-  @ApiResponse({ status: 201, schema: { example: { token: 'string' } } })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @HttpCode(204)
   @Post('login')
-  async login(@Request() req): Promise<{ token: string }> {
-    return this.authService.login(req.user);
+  async login(
+    @Request() req,
+    @Response({ passthrough: true }) res,
+  ): Promise<void> {
+    return this.authService.login(req.user, res);
   }
 
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @UseGuards(JwtAuthGuard)
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Get('me')
   me(@Request() req): User {
     return req.user;
+  }
+
+  @ApiCookieAuth()
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(204)
+  @Get('logout')
+  logout(@Request() req, @Response({ passthrough: true }) res): void {
+    this.authService.logout(res);
   }
 }
