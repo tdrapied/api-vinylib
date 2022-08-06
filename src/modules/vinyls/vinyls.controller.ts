@@ -17,7 +17,7 @@ import { UpdateVinylDto } from './dto/update-vinyl.dto';
 import { Vinyl } from './entities/vinyl.entity';
 import {
   ApiBadRequestResponse,
-  ApiBearerAuth,
+  ApiCookieAuth,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -29,7 +29,7 @@ export class VinylsController {
   constructor(private readonly vinylsService: VinylsService) {}
 
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Get()
   findAll(@Request() req): Promise<Vinyl[]> {
@@ -37,7 +37,7 @@ export class VinylsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @ApiBadRequestResponse({ description: 'Bad request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Get(':id')
@@ -49,7 +49,7 @@ export class VinylsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @ApiBadRequestResponse({ description: 'Bad request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Post()
@@ -61,7 +61,7 @@ export class VinylsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @ApiBadRequestResponse({ description: 'Bad request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @HttpCode(204)
@@ -75,7 +75,7 @@ export class VinylsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @ApiBadRequestResponse({ description: 'Bad request ' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @HttpCode(204)

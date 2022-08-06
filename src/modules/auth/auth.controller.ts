@@ -8,8 +8,8 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import {
-  ApiBearerAuth,
   ApiBody,
+  ApiCookieAuth,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -37,11 +37,19 @@ export class AuthController {
     return this.authService.login(req.user, res);
   }
 
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @UseGuards(JwtAuthGuard)
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @Get('me')
   me(@Request() req): User {
     return req.user;
+  }
+
+  @ApiCookieAuth()
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(204)
+  @Get('logout')
+  logout(@Request() req, @Response({ passthrough: true }) res): void {
+    this.authService.logout(res);
   }
 }
