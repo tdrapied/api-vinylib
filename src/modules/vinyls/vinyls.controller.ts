@@ -10,6 +10,7 @@ import {
   ParseUUIDPipe,
   HttpCode,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { VinylsService } from './vinyls.service';
 import { CreateVinylDto } from './dto/create-vinyl.dto';
@@ -18,10 +19,14 @@ import { Vinyl } from './entities/vinyl.entity';
 import {
   ApiBadRequestResponse,
   ApiCookieAuth,
+  ApiNotFoundResponse,
+  ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { SearchVinylQueryDto } from './dto/search-vinyl-query.dto';
+import { DiscogsVinylModel } from './models/discogs-vinyl.model';
 
 @ApiTags('vinyls')
 @Controller('vinyls')
@@ -38,8 +43,25 @@ export class VinylsController {
 
   @UseGuards(JwtAuthGuard)
   @ApiCookieAuth()
+  @ApiOperation({
+    summary:
+      'Search for information about a vinyl via a barcode in the discogs api',
+  })
   @ApiBadRequestResponse({ description: 'Bad request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiNotFoundResponse({ description: 'Not found' })
+  @Get('search')
+  search(
+    @Query() searchVinylQueryDto: SearchVinylQueryDto,
+  ): Promise<DiscogsVinylModel> {
+    return this.vinylsService.search(searchVinylQueryDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth()
+  @ApiBadRequestResponse({ description: 'Bad request' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiNotFoundResponse({ description: 'Not found' })
   @Get(':id')
   findOne(
     @Request() req,
@@ -76,7 +98,7 @@ export class VinylsController {
 
   @UseGuards(JwtAuthGuard)
   @ApiCookieAuth()
-  @ApiBadRequestResponse({ description: 'Bad request ' })
+  @ApiBadRequestResponse({ description: 'Bad request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @HttpCode(204)
   @Delete(':id')

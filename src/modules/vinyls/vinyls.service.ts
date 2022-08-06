@@ -8,14 +8,44 @@ import { UpdateVinylDto } from './dto/update-vinyl.dto';
 import { User } from '../users/entities/user.entity';
 import { VinylRepository } from './repositories/vinyl.repository';
 import { Vinyl } from './entities/vinyl.entity';
+import { SearchVinylQueryDto } from './dto/search-vinyl-query.dto';
+import { DiscogsApi } from '../../utils/discogs-api';
+import { DiscogsVinylModel } from './models/discogs-vinyl.model';
 
 @Injectable()
 export class VinylsService {
-  constructor(private readonly vinylRepository: VinylRepository) {}
+  constructor(
+    private readonly vinylRepository: VinylRepository,
+    private readonly discogsApi: DiscogsApi,
+  ) {}
 
   findAll(user: User): Promise<Vinyl[]> {
     // TODO: Add search advanced + paginate
     return this.vinylRepository.searchByUser(user);
+  }
+
+  async search(
+    searchVinylQueryDto: SearchVinylQueryDto,
+  ): Promise<DiscogsVinylModel> {
+    try {
+      // Get vinyls with a barcode
+      const data = await this.discogsApi.getVinylsByBarcode(
+        searchVinylQueryDto.barcode,
+      );
+
+      // If no result or master id
+      const firstResult = data.results[0];
+      if (!firstResult || !firstResult.master_id) {
+        throw new Error('No results');
+      }
+
+      // Get vinyl information
+      const vinyl = await this.discogsApi.getMasterById(firstResult.master_id);
+
+      return new DiscogsVinylModel(vinyl);
+    } catch (error) {
+      throw new NotFoundException('Vinyl information not found');
+    }
   }
 
   async findOne(user: User, id: string): Promise<Vinyl> {
