@@ -1,4 +1,4 @@
-# vinyl-lib-api
+# vinylib-api
 
 ## Installation
 ```bash
