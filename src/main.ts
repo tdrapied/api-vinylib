@@ -1,7 +1,8 @@
-import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { NestFactory, Reflector } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { ValidationPipe } from "@nestjs/common";
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,15 +16,19 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
-      disableErrorMessages: process.env.APP_ENV === 'production',
+      disableErrorMessages: process.env.NODE_ENV === 'production',
     }),
   );
 
-  if (process.env.APP_ENV !== 'production') {
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  app.use(cookieParser(process.env.COOKIE_SECRET));
+
+  if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
       .setTitle(process.env.npm_package_name)
       .setVersion(process.env.npm_package_version)
-      .addBearerAuth()
+      .addTag('auth')
+      .addTag('vinyls')
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('/', app, document);

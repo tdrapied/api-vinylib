@@ -10,4 +10,8 @@ export const ormConfig: TypeOrmModuleOptions = {
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DB,
   entities: [join(__dirname, '../../src/**/*.entity{.ts,.js}')],
+  ssl:
+    process.env.POSTGRES_SSL === 'enable'
+      ? { rejectUnauthorized: false }
+      : false,
 };
