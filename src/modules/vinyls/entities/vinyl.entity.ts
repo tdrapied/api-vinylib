@@ -19,10 +19,9 @@ export class Vinyl {
   artist: string;
 
   @Column({
-    type: 'timestamp',
     nullable: true,
   })
-  releaseDate: Date = null;
+  releaseDate: string = null;
 
   @Column({
     type: 'text',

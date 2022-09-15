@@ -57,6 +57,11 @@ export class VinylsService {
   }
 
   async create(user: User, createVinylDto: CreateVinylDto): Promise<Vinyl> {
+    // Uppercase first letter
+    createVinylDto.name =
+      createVinylDto.name.charAt(0).toUpperCase() +
+      createVinylDto.name.slice(1);
+
     const newVinyl = await this.vinylRepository.save({
       ...createVinylDto,
       user,

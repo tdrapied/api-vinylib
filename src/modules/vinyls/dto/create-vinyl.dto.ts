@@ -1,5 +1,4 @@
-import { IsOptional, IsString, MaxLength, IsDate } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsString, MaxLength, Matches } from 'class-validator';
 
 export class CreateVinylDto {
   @IsString()
@@ -11,9 +10,9 @@ export class CreateVinylDto {
   artist: string;
 
   @IsOptional()
-  @IsDate()
-  @Type(() => Date)
-  releaseDate: Date = null;
+  @IsString()
+  @Matches(/^[12]\d{3}$/) // From 1000 to 2999 (year)
+  releaseDate: string = null;
 
   @IsOptional()
   @IsString()
