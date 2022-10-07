@@ -3,6 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import {
+  FilterOperator,
+  PaginateQuery,
+  paginate,
+  Paginated,
+} from 'nestjs-paginate';
 import { CreateVinylDto } from './dto/create-vinyl.dto';
 import { UpdateVinylDto } from './dto/update-vinyl.dto';
 import { User } from '../users/entities/user.entity';
@@ -19,9 +25,24 @@ export class VinylsService {
     private readonly discogsApi: DiscogsApi,
   ) {}
 
-  findAll(user: User): Promise<Vinyl[]> {
-    // TODO: Add search advanced + paginate
-    return this.vinylRepository.searchByUser(user);
+  findAll(user: User, query: PaginateQuery): Promise<Paginated<Vinyl>> {
+    return paginate(query, this.vinylRepository, {
+      sortableColumns: ['name', 'artist', 'releaseDate', 'createdAt'],
+      searchableColumns: ['name', 'artist', 'description'],
+      defaultSortBy: [['name', 'ASC']],
+      filterableColumns: {
+        name: [FilterOperator.GTE],
+        artist: [FilterOperator.GTE],
+        description: [FilterOperator.GTE],
+      },
+      defaultLimit: 25,
+      maxLimit: 25,
+      where: {
+        user: {
+          id: user.id,
+        },
+      },
+    });
   }
 
   async search(

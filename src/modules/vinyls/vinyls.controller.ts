@@ -24,9 +24,11 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { Paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SearchVinylQueryDto } from './dto/search-vinyl-query.dto';
 import { DiscogsVinylModel } from './models/discogs-vinyl.model';
+import { PaginateQueryOptions } from '../../decorators/paginate-query-options.decorator';
 
 @ApiTags('vinyls')
 @Controller('vinyls')
@@ -36,9 +38,13 @@ export class VinylsController {
   @UseGuards(JwtAuthGuard)
   @ApiCookieAuth()
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @PaginateQueryOptions()
   @Get()
-  findAll(@Request() req): Promise<Vinyl[]> {
-    return this.vinylsService.findAll(req.user);
+  findAll(
+    @Request() req,
+    @Paginate() query: PaginateQuery,
+  ): Promise<Paginated<Vinyl>> {
+    return this.vinylsService.findAll(req.user, query);
   }
 
   @UseGuards(JwtAuthGuard)
