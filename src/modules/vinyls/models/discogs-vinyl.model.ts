@@ -7,8 +7,8 @@ export class DiscogsVinylModel {
   @ApiProperty({ type: String, nullable: true })
   artist: string = null;
 
-  @ApiProperty({ type: Date, nullable: true })
-  releaseDate: Date = null;
+  @ApiProperty({ type: String, nullable: true })
+  releaseDate: string = null;
 
   constructor(data: any) {
     this.name = data.title;
@@ -17,10 +17,6 @@ export class DiscogsVinylModel {
       this.artist = data.artists.map((artist) => artist.name).join(', ');
     }
 
-    // Convert year to date
-    const date = new Date(data.year, 0);
-    if (date instanceof Date && !isNaN(date.valueOf())) {
-      this.releaseDate = date;
-    }
+    this.releaseDate = data.year.toString();
   }
 }
