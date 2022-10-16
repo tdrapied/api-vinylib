@@ -35,8 +35,8 @@ export class VinylsService {
         artist: [FilterOperator.GTE],
         description: [FilterOperator.GTE],
       },
-      defaultLimit: 25,
-      maxLimit: 25,
+      defaultLimit: 9999, // Because I'm too lazy to develop a pagination on the front.
+      maxLimit: 9999,
       where: {
         user: {
           id: user.id,
