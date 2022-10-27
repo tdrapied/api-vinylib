@@ -28,13 +28,13 @@ export class User {
   password: string;
 
   @Column({
-    type: 'timestamptz',
+    type: 'datetime',
     default: () => 'CURRENT_TIMESTAMP',
   })
   createdAt: Date;
 
   @Column({
-    type: 'timestamptz',
+    type: 'datetime',
     default: () => 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
