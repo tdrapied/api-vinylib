@@ -3,7 +3,7 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  Put,
   Param,
   Delete,
   Request,
@@ -93,7 +93,7 @@ export class VinylsController {
   @ApiBadRequestResponse({ description: 'Bad request' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @HttpCode(204)
-  @Patch(':id')
+  @Put(':id')
   update(
     @Request() req,
     @Param('id') id: string,
