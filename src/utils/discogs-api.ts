@@ -1,13 +1,15 @@
 import axios from 'axios';
 
 export class DiscogsApi {
+  API_ENDPOINT = 'https://api.discogs.com';
+
   async getVinylsByBarcode(barcode: string): Promise<any> {
-    const url = `https://api.discogs.com/database/search?format=vinyl&barcode=${barcode}`;
+    const url = `${this.API_ENDPOINT}/database/search?format=vinyl&barcode=${barcode}`;
     return this.callDiscogsApi(url);
   }
 
   async getMasterById(masterId: number): Promise<any> {
-    const url = `https://api.discogs.com/masters/${masterId}`;
+    const url = `${this.API_ENDPOINT}/masters/${masterId}`;
     return this.callDiscogsApi(url);
   }
 
@@ -19,8 +21,8 @@ export class DiscogsApi {
         },
       });
       return response.data;
-    } catch (error) {
-      throw new Error(error);
+    } catch (e) {
+      throw new Error(e);
     }
   }
 }

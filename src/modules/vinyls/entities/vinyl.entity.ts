@@ -29,6 +29,16 @@ export class Vinyl {
   })
   description: string = null;
 
+  @Column({
+    nullable: true,
+  })
+  coverLarge: string = null;
+
+  @Column({
+    nullable: true,
+  })
+  coverSmall: string = null;
+
   @ApiHideProperty()
   @Exclude()
   @ManyToOne(() => User)

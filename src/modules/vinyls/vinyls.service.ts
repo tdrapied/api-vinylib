@@ -17,15 +17,17 @@ import { Vinyl } from './entities/vinyl.entity';
 import { SearchVinylQueryDto } from './dto/search-vinyl-query.dto';
 import { DiscogsApi } from '../../utils/discogs-api';
 import { DiscogsVinylModel } from './models/discogs-vinyl.model';
+import { SpotifyApi } from '../../utils/spotify-api';
 
 @Injectable()
 export class VinylsService {
   constructor(
     private readonly vinylRepository: VinylRepository,
     private readonly discogsApi: DiscogsApi,
+    private readonly spotifyApi: SpotifyApi,
   ) {}
 
-  findAll(user: User, query: PaginateQuery): Promise<Paginated<Vinyl>> {
+  async findAll(user: User, query: PaginateQuery): Promise<Paginated<Vinyl>> {
     return paginate(query, this.vinylRepository, {
       sortableColumns: ['name', 'artist', 'releaseDate', 'createdAt'],
       searchableColumns: ['name', 'artist', 'description'],
@@ -83,10 +85,22 @@ export class VinylsService {
       createVinylDto.name.charAt(0).toUpperCase() +
       createVinylDto.name.slice(1);
 
-    const newVinyl = await this.vinylRepository.save({
+    const vinyl: any = {
       ...createVinylDto,
       user,
-    });
+    };
+
+    // Search vinyl covers if exists
+    const covers = await this.spotifyApi.getAlbumsCovers(
+      createVinylDto.name,
+      createVinylDto.artist,
+    );
+    if (covers) {
+      vinyl.coverLarge = covers.large;
+      vinyl.coverSmall = covers.small;
+    }
+
+    const newVinyl = await this.vinylRepository.save(vinyl);
     return new Vinyl(newVinyl);
   }
 
@@ -99,7 +113,25 @@ export class VinylsService {
     if (!vinyl) {
       throw new BadRequestException('Vinyl not exist');
     }
-    await this.vinylRepository.update(id, updateVinylDto);
+
+    const updatedVinyl: any = updateVinylDto;
+
+    // If vinyl name or artist is updated, search for new covers
+    if (
+      updateVinylDto.name !== vinyl.name ||
+      updateVinylDto.artist !== vinyl.artist
+    ) {
+      const covers = await this.spotifyApi.getAlbumsCovers(
+        updateVinylDto.name,
+        updateVinylDto.artist,
+      );
+      if (covers) {
+        updatedVinyl.coverLarge = covers.large;
+        updatedVinyl.coverSmall = covers.small;
+      }
+    }
+
+    await this.vinylRepository.update(id, updatedVinyl);
   }
 
   async remove(user: User, id: string): Promise<void> {
