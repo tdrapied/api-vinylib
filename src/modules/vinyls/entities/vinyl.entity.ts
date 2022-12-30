@@ -19,10 +19,9 @@ export class Vinyl {
   artist: string;
 
   @Column({
-    type: 'timestamp',
     nullable: true,
   })
-  releaseDate: Date = null;
+  releaseDate: string = null;
 
   @Column({
     type: 'text',
@@ -30,19 +29,29 @@ export class Vinyl {
   })
   description: string = null;
 
+  @Column({
+    nullable: true,
+  })
+  coverLarge: string = null;
+
+  @Column({
+    nullable: true,
+  })
+  coverSmall: string = null;
+
   @ApiHideProperty()
   @Exclude()
   @ManyToOne(() => User)
   user: User;
 
   @Column({
-    type: 'timestamptz',
+    type: 'datetime',
     default: () => 'CURRENT_TIMESTAMP',
   })
   createdAt: Date;
 
   @Column({
-    type: 'timestamptz',
+    type: 'datetime',
     default: () => 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;

@@ -9,20 +9,6 @@ export class VinylRepository extends Repository<Vinyl> {
     super(Vinyl, dataSource.createEntityManager());
   }
 
-  searchByUser(user: User): Promise<Vinyl[]> {
-    return this.find({
-      where: {
-        user: {
-          id: user.id,
-        },
-      },
-      order: {
-        name: 'ASC',
-      },
-      relations: ['user'],
-    });
-  }
-
   findOneByUser(id: string, user: User): Promise<Vinyl> {
     return this.findOne({
       where: {
