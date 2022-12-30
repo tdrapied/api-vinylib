@@ -2,11 +2,11 @@ import { IsOptional, IsString, MaxLength, Matches } from 'class-validator';
 
 export class CreateVinylDto {
   @IsString()
-  @MaxLength(50)
+  @MaxLength(250)
   name: string;
 
   @IsString()
-  @MaxLength(50)
+  @MaxLength(250)
   artist: string;
 
   @IsOptional()
