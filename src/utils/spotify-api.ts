@@ -11,29 +11,6 @@ export class SpotifyApi {
 
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
-  async getAlbumsCovers(
-    name: string,
-    artist: string,
-  ): Promise<{ large: string; small: string } | null> {
-    const album = await this.getOneAlbum(name, artist);
-
-    if (!album || album.images.length === 0) {
-      return null;
-    }
-
-    const large =
-      album.images.find((image) => image.width === 300)?.url ||
-      album.images[0].url;
-    const small =
-      album.images.find((image) => image.width === 64)?.url ||
-      album.images[0].url;
-
-    return {
-      large,
-      small,
-    };
-  }
-
   async getOneAlbum(name: string, artist: string): Promise<any | null> {
     try {
       name = encodeURIComponent(name);
@@ -53,7 +30,17 @@ export class SpotifyApi {
     }
   }
 
-  private async getAuthToken(): Promise<{ token: string; ttl: number }> {
+  async getAlbumCoverURL(name: string, artist: string): Promise<string | null> {
+    const album = await this.getOneAlbum(name, artist);
+
+    if (!album || album.images.length === 0) {
+      return null;
+    }
+
+    return album.images[0]?.url;
+  }
+
+  private async authenticate(): Promise<string> {
     const authString = `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`;
     const authorization = Buffer.from(authString).toString('base64');
 
@@ -69,23 +56,16 @@ export class SpotifyApi {
         },
       );
 
-      return {
-        token: response.data.access_token,
-        ttl: response.data.expires_in,
-      };
+      await this.cacheManager.set(
+        this.SPOTIFY_CACHE_TOKEN_KEY,
+        response.data.access_token,
+        response.data.expires_in,
+      );
+
+      return response.data.access_token;
     } catch (e) {
       throw new Error('Spotify authentication failed');
     }
-  }
-
-  private async authenticate(): Promise<string> {
-    const authToken = await this.getAuthToken();
-    await this.cacheManager.set(
-      this.SPOTIFY_CACHE_TOKEN_KEY,
-      authToken.token,
-      authToken.ttl,
-    );
-    return authToken.token;
   }
 
   private async callSpotityApi(url: string): Promise<any> {
