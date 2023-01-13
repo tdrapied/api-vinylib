@@ -17,5 +17,10 @@ export class CreateVinylDto {
   @IsOptional()
   @IsString()
   @MaxLength(250)
-  description: string = null;
+  description: string;
+
+  @IsOptional()
+  @MaxLength(250)
+  @Matches(/^https:\/\/i\.scdn\.co\/image\/[a-zA-Z0-9]+$/)
+  coverURL: string;
 }

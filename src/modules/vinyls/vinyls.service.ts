@@ -18,6 +18,8 @@ import { SearchVinylQueryDto } from './dto/search-vinyl-query.dto';
 import { DiscogsApi } from '../../utils/discogs-api';
 import { DiscogsVinylModel } from './models/discogs-vinyl.model';
 import { SpotifyApi } from '../../utils/spotify-api';
+import { SearchVinylCoverQueryDto } from './dto/search-vinyl-cover-query.dto';
+import { ImageUpload } from '../../utils/image-upload';
 
 @Injectable()
 export class VinylsService {
@@ -25,6 +27,7 @@ export class VinylsService {
     private readonly vinylRepository: VinylRepository,
     private readonly discogsApi: DiscogsApi,
     private readonly spotifyApi: SpotifyApi,
+    private readonly imageUpload: ImageUpload,
   ) {}
 
   async findAll(user: User, query: PaginateQuery): Promise<Paginated<Vinyl>> {
@@ -79,7 +82,17 @@ export class VinylsService {
     return vinyl;
   }
 
-  async create(user: User, createVinylDto: CreateVinylDto): Promise<Vinyl> {
+  async create(
+    user: User,
+    createVinylDto: CreateVinylDto,
+    coverFile?: Express.Multer.File,
+  ): Promise<Vinyl> {
+    if (createVinylDto.coverURL && coverFile) {
+      throw new BadRequestException(
+        'Just one cover is allowed (coverURL or coverFile)',
+      );
+    }
+
     // Uppercase first letter
     createVinylDto.name =
       createVinylDto.name.charAt(0).toUpperCase() +
@@ -90,14 +103,12 @@ export class VinylsService {
       user,
     };
 
-    // Search vinyl covers if exists
-    const covers = await this.spotifyApi.getAlbumsCovers(
-      createVinylDto.name,
-      createVinylDto.artist,
-    );
-    if (covers) {
-      vinyl.coverLarge = covers.large;
-      vinyl.coverSmall = covers.small;
+    if (coverFile) {
+      // Upload cover image
+      vinyl.coverFilename = await this.imageUpload.saveImage(
+        coverFile,
+        process.env.COVERS_UPLOAD_PATH,
+      );
     }
 
     const newVinyl = await this.vinylRepository.save(vinyl);
@@ -108,30 +119,44 @@ export class VinylsService {
     user: User,
     id: string,
     updateVinylDto: UpdateVinylDto,
+    coverFile?: Express.Multer.File,
   ): Promise<void> {
+    if (updateVinylDto.coverURL && coverFile) {
+      throw new BadRequestException(
+        'Just one cover is allowed (coverURL or coverFile)',
+      );
+    }
+
     const vinyl = await this.vinylRepository.findOneByUser(id, user);
     if (!vinyl) {
       throw new BadRequestException('Vinyl not exist');
     }
 
-    const updatedVinyl: any = updateVinylDto;
+    const vinylUpdated: any = {
+      coverFilename: vinyl.coverFilename,
+      coverURL: vinyl.coverURL,
+      ...updateVinylDto,
+    };
 
-    // If vinyl name or artist is updated, search for new covers
-    if (
-      updateVinylDto.name !== vinyl.name ||
-      updateVinylDto.artist !== vinyl.artist
-    ) {
-      const covers = await this.spotifyApi.getAlbumsCovers(
-        updateVinylDto.name,
-        updateVinylDto.artist,
+    // Delete old cover image if new cover image is uploaded
+    if (vinylUpdated.coverFilename && (vinylUpdated.coverURL || coverFile)) {
+      await this.imageUpload.deleteImage(
+        vinylUpdated.coverFilename,
+        process.env.COVERS_UPLOAD_PATH,
       );
-      if (covers) {
-        updatedVinyl.coverLarge = covers.large;
-        updatedVinyl.coverSmall = covers.small;
-      }
+      vinylUpdated.coverFilename = null;
     }
 
-    await this.vinylRepository.update(id, updatedVinyl);
+    if (coverFile) {
+      // Upload new cover image
+      vinylUpdated.coverFilename = await this.imageUpload.saveImage(
+        coverFile,
+        process.env.COVERS_UPLOAD_PATH,
+      );
+      vinylUpdated.coverURL = null;
+    }
+
+    await this.vinylRepository.update(id, vinylUpdated);
   }
 
   async remove(user: User, id: string): Promise<void> {
@@ -139,6 +164,28 @@ export class VinylsService {
     if (!vinyl) {
       throw new BadRequestException('Vinyl not exist');
     }
+
+    // Delete cover image if exist
+    if (vinyl.coverFilename) {
+      await this.imageUpload.deleteImage(
+        vinyl.coverFilename,
+        process.env.COVERS_UPLOAD_PATH,
+      );
+    }
+
     await this.vinylRepository.remove(vinyl);
+  }
+
+  async searchAlbumCoverURL(
+    searchVinylCoverQuery: SearchVinylCoverQueryDto,
+  ): Promise<{ url: string }> {
+    const coverURL = await this.spotifyApi.getAlbumCoverURL(
+      searchVinylCoverQuery.name,
+      searchVinylCoverQuery.artist,
+    );
+    if (!coverURL) {
+      throw new NotFoundException('Vinyl cover not found');
+    }
+    return { url: coverURL };
   }
 }

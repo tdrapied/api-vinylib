@@ -1,4 +1,11 @@
-import { Column, Entity, ManyToOne } from 'typeorm';
+import {
+  AfterLoad,
+  AfterInsert,
+  Column,
+  Entity,
+  ManyToOne,
+  AfterRecover,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Exclude } from 'class-transformer';
 import { ApiHideProperty } from '@nestjs/swagger';
@@ -29,15 +36,23 @@ export class Vinyl {
   })
   description: string = null;
 
+  // It's name of file in the storage
+  @ApiHideProperty()
+  @Exclude()
   @Column({
     nullable: true,
   })
-  coverLarge: string = null;
+  coverFilename: string = null;
 
+  // It's the link to the cover on spotify
+  @ApiHideProperty()
+  @Exclude()
   @Column({
     nullable: true,
   })
-  coverSmall: string = null;
+  coverURL: string = null;
+
+  cover: string = null;
 
   @ApiHideProperty()
   @Exclude()
@@ -58,5 +73,13 @@ export class Vinyl {
 
   constructor(partial: Partial<Vinyl>) {
     Object.assign(this, partial);
+    this.setCoverURL();
+  }
+
+  @AfterLoad()
+  setCoverURL() {
+    this.cover = this.coverFilename
+      ? `${process.env.COVERS_URL}/${this.coverFilename}`
+      : this.coverURL;
   }
 }

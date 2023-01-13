@@ -12,5 +12,12 @@ services:
     volumes:
       - db_data:/lib/mysql/
 
+  nginx:
+    image: nginx
+    volumes:
+      - ./uploads:/usr/share/nginx/html
+    ports:
+      - "8081:80"
+
 volumes:
   db_data:
