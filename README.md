@@ -1,5 +1,7 @@
 # api-vinylib
 
+This api developed in NestJS to manage your vinyl collection is used by [vinylib](https://github.com/tdrapied/vinylib).
+
 ## Installation
 ```bash
 $ npm install
@@ -26,9 +28,3 @@ npm run start
 ```
 
 API: http://localhost:3000
-
-## Testing
-```bash
-# unit tests
-$ npm run test
-```
